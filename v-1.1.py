@@ -216,7 +216,7 @@ class ToolDataApp:
         tk.Label(frame_txt, text="容器 1", bg="#E0E0E0", fg="gray", anchor="w").pack(fill=tk.X)
         tk.Label(frame_txt, text="■ 文件。txt", bg="white", font=("微软雅黑", 14)).pack(pady=10)
         
-        # TXT 列表框（加入 exportselection=False 允许两边同时选中）
+        # TXT 列表框
         self.listbox_txt = tk.Listbox(frame_txt, font=("微软雅黑", 10), selectbackground="#A0A0A0", relief=tk.FLAT, exportselection=False)
         self.listbox_txt.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
@@ -227,7 +227,7 @@ class ToolDataApp:
         tk.Label(frame_excel, text="容器 2", bg="#E0E0E0", fg="gray", anchor="w").pack(fill=tk.X)
         tk.Label(frame_excel, text="■ 文件。excel", bg="white", font=("微软雅黑", 14)).pack(pady=10)
         
-        # Excel 列表框（加入 exportselection=False 允许两边同时选中）
+        # Excel 列表框
         self.listbox_excel = tk.Listbox(frame_excel, font=("微软雅黑", 10), selectbackground="#A0A0A0", relief=tk.FLAT, exportselection=False)
         self.listbox_excel.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
@@ -303,12 +303,19 @@ class ToolDataApp:
             return
 
         # 3. 构建输出文件路径并安全复制原文件
-        # 输出格式：原文件名+年月日时分.xlsx (例如: filename202608230835.xlsx)
-        timestamp = datetime.now().strftime("%Y%m%d%H%M")
+        # 精确到秒的时间戳，大大降低重名概率
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         base_name = os.path.splitext(excel_filename)[0]
-        # 强制将新文件存为 .xlsx
+        
         output_filename = f"{base_name}{timestamp}.xlsx"
         output_path = os.path.join(self.script_dir, output_filename)
+
+        # 防重名检测机制：如果文件已存在，则自动添加 _1, _2 等后缀
+        counter = 1
+        while os.path.exists(output_path):
+            output_filename = f"{base_name}{timestamp}_{counter}.xlsx"
+            output_path = os.path.join(self.script_dir, output_filename)
+            counter += 1
 
         try:
             # 使用 shutil.copy2 复制源文件到根目录，保证不破坏源文件夹内的模板
